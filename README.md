@@ -21,7 +21,8 @@ Create a Python environment for this script.  Use ssh to log in to the Raspberry
 Download `probe_accuracy.py` from this repository and copy it into `/home/pi/probe_accuracy/` on the Raspberry Pi.
 
 Download `test_probe_accuracy.cfg` from this repository and copy it to the directory containing your
-`printer.cfg` - it's `/home/pi/klipper_config/` if you're using MainsailOS.  Edit your `printer.cfg` and add the
+`printer.cfg` - it's `/home/pi/klipper_config/` if you're using
+[MainsailOS](https://github.com/raymondh2/MainsailOS).  Edit your `printer.cfg` and add the
 following on a new line:
 
     [include test_probe_accuracy.cfg]
@@ -31,8 +32,8 @@ Restart Klipper.
 Test Execution
 --------------
 
-Home and level your printer (G32 on a VORON 2).  Use ssh to log in to the Raspberry Pi and run the following
-to start the data collection:
+Home and level your printer (G32 on a [VORON 2](https://vorondesign.com)).  Use ssh to log in to the Raspberry
+Pi and run the following to start the data collection:
 
      while read -r line; do echo `/bin/date +%s`: "$line"; done < /tmp/printer > /tmp/probe_accuracy.txt
 
@@ -57,7 +58,7 @@ In your Raspberry Pi ssh session run:
 
     /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
 
-It will save the output file to `/tmp/probe_accuracy.html` .  Copy that file over to your local machine and open
+It will save the output to `/tmp/probe_accuracy.html` .  Copy that file over to your local machine and open
 it.  It should contain a chart showing the Z height over time, as the bed and the hotend heat up.
 
 Customizing Time and Temperature
