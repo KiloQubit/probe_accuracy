@@ -31,7 +31,8 @@ Restart Klipper.
 Test Execution
 --------------
 
-Home and level your printer (G32 on a [VORON 2](https://vorondesign.com)).  Use ssh to log in to the Raspberry
+Home and level your printer (G32 on a [VORON 2](https://vorondesign.com)).  Position the nozzle over the bed
+where you want to test the probe, probably in the center of the bed.  Use ssh to log in to the Raspberry
 Pi and run the following to start the data collection:
 
     /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
