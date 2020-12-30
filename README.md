@@ -49,7 +49,9 @@ probably take over an hour to run.  Get some coffee while you wait.
 
 After the test is complete, the printer will raise the toolhead a little and turn off the heaters.  The chart
 output should be on the Raspberry Pi in `/tmp/probe_accuracy.html` - copy that file to your local machine and
-open it.  It should contain a chart showing the Z height over time, as the bed and the hotend heat up.
+open it.  It should contain a chart showing the Z height over time, as the bed and the hotend heat up.  There's
+also a `/tmp/probe_accuracy.json` file generated on the Raspberry Pi, which contains the data used for the chart.
+You can download it and use it to create your own chart if you wish.
 
 Customizing Time and Temperature
 --------------------------------
