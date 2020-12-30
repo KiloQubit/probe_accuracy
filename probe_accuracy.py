@@ -164,8 +164,12 @@ def write_chart(data, output_file):
 def main():
     args = parser.parse_args()
 
+    print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
+
     data = get_data(args.klippy_uds, args.data_file)
     write_chart(data, args.chart_file)
+
+    print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
 
 
 if __name__ == '__main__':
