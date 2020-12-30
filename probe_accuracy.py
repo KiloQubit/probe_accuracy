@@ -9,57 +9,96 @@
 #
 # To collect data, ssh into the pi and run the below command before doing TEST_PROBE_ACCURACY:
 #
-#     while read -r line; do echo `/bin/date +%s`: "$line"; done < /tmp/printer > /tmp/probe_accuracy.txt
-#
-# Leave that ssh session/window open for the duration of the test.  After TEST_PROBE_ACCURACY completes,
-# go back to the ssh session and hit Ctrl+C to stop the data collection.  Then run this script with
-#
 #     /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
 #
-# Copy the output file /tmp/probe_accuracy.html from the pi to your local machine and open it.
+# Leave that ssh session/window open for the duration of the test.  After the test completes, the
+# chart should be in /tmp/probe_accuracy.html. Copy that file from the pi to your local machine
+# and open it.
 
 import argparse
+import json
 import re
+import socket
+import time
 
 import plotly.graph_objects as pgo
 from plotly.subplots import make_subplots
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data-file', default='/tmp/probe_accuracy.txt')
-parser.add_argument('--output-file', default='/tmp/probe_accuracy.html')
+parser.add_argument('--klippy-uds', default='/tmp/klippy_uds')
+parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
+parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
+
+KLIPPY_KEY = 31415926
+GCODE_SUBSCRIBE = {
+    'params': {'response_template': {'key': KLIPPY_KEY}},
+    'id': 42,
+    'method': 'gcode/subscribe_output'
+}
+TEST_END_MARKER = 'TEST_PROBE_ACCURACY: DONE'
 
 START_RE = re.compile(r'// TEST_PROBE_ACCURACY: START')
-# 1609027993: B:40.1 /40.0 PI:45.3 /0.0 T0:59.8 /60.0
-TEMP_RE = re.compile(r'^(?P<ts>\d+):.*B:(?P<btemp>[0-9.]+)\s*/(?P<bset>[0-9.]+).*T0:(?P<etemp>[0-9.]+)\s*/(?P<eset>[0-9.]+)')
-# 1609027997: // probe at 175.000,175.000 is z=2.027500
-PROBE_RE = re.compile(r'^(?P<ts>\d+):.*// probe at [0-9.,]+ is z=(?P<z>[0-9.]+)')
+# B:40.1 /40.0 PI:45.3 /0.0 T0:59.8 /60.0
+TEMP_RE = re.compile(r'^B:(?P<btemp>[0-9.]+)\s*/(?P<bset>[0-9.]+).*T0:(?P<etemp>[0-9.]+)\s*/(?P<eset>[0-9.]+)')
+# // probe at 175.000,175.000 is z=2.027500
+PROBE_RE = re.compile(r'^// probe at [0-9.,]+ is z=(?P<z>[0-9.]+)')
 
 
-def parse_file(data_file):
+def get_klippy_output(klippy_uds):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(klippy_uds)
+
+    try:
+        sock.sendall(json.dumps(GCODE_SUBSCRIBE, separators=(',', ':')).encode() + b'\x03')
+
+        remainder = b''
+        while True:
+            data = sock.recv(4096)
+            parts = data.split(b'\x03')
+            parts[0] = remainder + parts[0]
+            remainder = parts.pop()
+            for part in parts:
+                line = part.decode()
+                if str(KLIPPY_KEY) not in line:
+                    continue
+                if TEST_END_MARKER in line:
+                    return
+                yield line
+    finally:
+        sock.close()
+
+
+def get_data(klippy_uds, data_file):
     data = []
-    with open(data_file) as f:
-        for line in f:
-            if START_RE.search(line):
-                data = []
-                continue
+    with open(data_file, 'w') as f:
+        for line in get_klippy_output(klippy_uds):
+            ts = time.time()
+            klippy_response = json.loads(line)
+            response = klippy_response['params']['response']
 
-            m = TEMP_RE.match(line)
+            m = TEMP_RE.match(response)
             if m:
-                data.append({
-                    'ts': int(m.group('ts')),
+                d = {
+                    'ts': ts,
                     'btemp': float(m.group('btemp')),
                     'bset': float(m.group('bset')),
                     'etemp': float(m.group('etemp')),
                     'eset': float(m.group('eset'))
-                })
+                }
+                data.append(d)
+                f.write(json.dumps(d, separators=(',', ':')) + '\n')
+                f.flush()
                 continue
 
-            m = PROBE_RE.match(line)
+            m = PROBE_RE.match(response)
             if m:
-                data.append({
-                    'ts': int(m.group('ts')),
+                d = {
+                    'ts': ts,
                     'z': float(m.group('z'))
-                })
+                }
+                data.append(d)
+                f.write(json.dumps(d, separators=(',', ':')) + '\n')
+                f.flush()
                 continue
 
     return data
@@ -125,8 +164,8 @@ def write_chart(data, output_file):
 def main():
     args = parser.parse_args()
 
-    data = parse_file(args.data_file)
-    write_chart(data, args.output_file)
+    data = get_data(args.klippy_uds, args.data_file)
+    write_chart(data, args.chart_file)
 
 
 if __name__ == '__main__':
