@@ -42,7 +42,7 @@ Pi and run the following to start the data collection:
 Alternatively, if you don't want to leave the window open, or have a bad network connection to the Pi, you
 can run the script in the background, and then you don't have to leave the ssh session open:
 
-    nohup /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py >/dev/null 2>&1 &
+    nohup /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py >/tmp/probe_accuracy.log 2>&1 &
 
 Run the test macro on the printer:
 
