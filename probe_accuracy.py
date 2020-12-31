@@ -41,7 +41,7 @@ START_RE = re.compile(r'// TEST_PROBE_ACCURACY: START')
 # B:40.1 /40.0 PI:45.3 /0.0 T0:59.8 /60.0
 TEMP_RE = re.compile(r'^B:(?P<btemp>[0-9.]+)\s*/(?P<bset>[0-9.]+).*T0:(?P<etemp>[0-9.]+)\s*/(?P<eset>[0-9.]+)')
 # // probe at 175.000,175.000 is z=2.027500
-PROBE_RE = re.compile(r'^// probe at [0-9.,]+ is z=(?P<z>[0-9.]+)')
+PROBE_RE = re.compile(r'^// probe at [0-9.,]+ is z=(?P<z>[0-9.-]+)')
 
 
 def get_klippy_output(klippy_uds):
