@@ -62,13 +62,19 @@ open it.  It should contain a chart showing the Z height over time, as the bed a
 also a `/tmp/probe_accuracy.json` file generated on the Raspberry Pi, which contains the data used for the chart.
 You can download it and use it to create your own chart if you wish.
 
-Customizing Time and Temperature
---------------------------------
+Customizing The Test
+--------------------
 
-You can pass parameters to the macro to change the temperatures and soak times:
+You can pass parameters to the macro to change the temperatures, soak times and dwell behavior:
 
-    TEST_PROBE_ACCURACY [BED_TEMP=<value>] [EXTRUDER_TEMP=<value>] [BED_SOAK_MINUTES=<value>] [EXTRUDER_SOAK_MINUTES=<value>]
+    TEST_PROBE_ACCURACY [BED_TEMP=<value>] [EXTRUDER_TEMP=<value>] [BED_SOAK_MINUTES=<value>]
+                        [EXTRUDER_SOAK_MINUTES=<value>] [DWELL_SECONDS=<value>] [DWELL_LIFT_Z=<value>]
 
 The temperatures are in Celsius.  The defaults are as follows:
 
     TEST_PROBE_ACCURACY BED_TEMP=110 EXTRUDER_TEMP=240 BED_SOAK_MINUTES=30 EXTRUDER_SOAK_MINUTES=15
+                        DWELL_SECONDS=1 DWELL_LIFT_Z=-1
+
+`DWELL_SECONDS` is the approximate amount of time between running `PROBE_ACCURACY` commands.  If
+`DWELL_LIFT_Z` is not `-1`, then the toolhead will be lifted to the specified Z after completing
+each `PROBE_ACCURACY`.  This is intended to allow the probe to cool away from the bed between probes.
