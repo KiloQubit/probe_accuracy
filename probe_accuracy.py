@@ -174,25 +174,26 @@ def write_chart(data, output_file, atherms):
     fig.add_trace(etrace, secondary_y=True)
     fig.add_trace(estrace, secondary_y=True)
 
-    for therm_id in atherms:
-        x = []
-        y = []
-        for d in data:
-            if not 'atherms' in d:
-                continue
-            for ad in d['atherms']:
-                if ad['id'] == therm_id:
-                    x.append(d['ts'] - min_ts)
-                    y.append(ad['temp'])
-                    break
+    if atherms:
+        for therm_id in atherms:
+            x = []
+            y = []
+            for d in data:
+                if not 'atherms' in d:
+                    continue
+                for ad in d['atherms']:
+                    if ad['id'] == therm_id:
+                        x.append(d['ts'] - min_ts)
+                        y.append(ad['temp'])
+                        break
 
-        trace = pgo.Scatter(
-            x=x,
-            y=y,
-            name=f'{therm_id} temperature',
-            mode='lines'
-        )
-        fig.add_trace(trace, secondary_y=True)
+            trace = pgo.Scatter(
+                x=x,
+                y=y,
+                name=f'{therm_id} temperature',
+                mode='lines'
+            )
+            fig.add_trace(trace, secondary_y=True)
 
     fig.update_layout(title_text='Probe Accuracy')
     fig.update_xaxes(title_text='seconds')
