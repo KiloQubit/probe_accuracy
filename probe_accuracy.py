@@ -28,6 +28,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--klippy-uds', default='/tmp/klippy_uds')
 parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
+parser.add_argument('--additional-thermistors', nargs='*', metavar='gcode_id',
+                    help='space-separated list of additional thermistor gcode_ids as defined in your config')
 
 KLIPPY_KEY = 31415926
 GCODE_SUBSCRIBE = {
@@ -37,9 +39,11 @@ GCODE_SUBSCRIBE = {
 }
 TEST_END_MARKER = 'TEST_PROBE_ACCURACY: DONE'
 
+BED_THERMISTOR_ID = 'B'
+EXTRUDER_THERMISTOR_ID = 'T0'
 START_RE = re.compile(r'// TEST_PROBE_ACCURACY: START')
 # B:40.1 /40.0 PI:45.3 /0.0 T0:59.8 /60.0
-TEMP_RE = re.compile(r'^B:(?P<btemp>[0-9.]+)\s*/(?P<bset>[0-9.]+).*T0:(?P<etemp>[0-9.]+)\s*/(?P<eset>[0-9.]+)')
+TEMP_RE = re.compile(r'(?P<id>[\w-]+):(?P<temp>[0-9.]+)\s*/(?P<set>[0-9.]+)')
 # // probe at 175.000,175.000 is z=2.027500
 PROBE_RE = re.compile(r'^// probe at [0-9.,]+ is z=(?P<z>[0-9.-]+)')
 
@@ -68,43 +72,59 @@ def get_klippy_output(klippy_uds):
         sock.close()
 
 
+def parse_response(response):
+    ts = time.time()
+
+    # Parse Z height output.
+    m = PROBE_RE.match(response)
+    if m:
+        d = {
+            'ts': ts,
+            'z': float(m.group('z'))
+        }
+        return d
+
+    # Parse thermistor output.
+    tmatches = list(TEMP_RE.finditer(response))
+    if tmatches:
+        d = {'ts': ts}
+        for m in tmatches:
+            if m.group('id') == BED_THERMISTOR_ID:
+                d['btemp'] = float(m.group('temp'))
+                d['bset'] = float(m.group('set'))
+            elif m.group('id') == EXTRUDER_THERMISTOR_ID:
+                d['etemp'] = float(m.group('temp'))
+                d['eset'] = float(m.group('set'))
+            else:
+                ad = {
+                    'id': m.group('id'),
+                    'temp': float(m.group('temp')),
+                    'set': float(m.group('set'))
+                }
+                try:
+                    d['atherms'].append(ad)
+                except KeyError:
+                    d['atherms'] = [ad]
+        return d
+
+
 def get_data(klippy_uds, data_file):
     data = []
     with open(data_file, 'w') as f:
         for line in get_klippy_output(klippy_uds):
-            ts = time.time()
             klippy_response = json.loads(line)
             response = klippy_response['params']['response']
 
-            m = TEMP_RE.match(response)
-            if m:
-                d = {
-                    'ts': ts,
-                    'btemp': float(m.group('btemp')),
-                    'bset': float(m.group('bset')),
-                    'etemp': float(m.group('etemp')),
-                    'eset': float(m.group('eset'))
-                }
+            d = parse_response(response)
+            if d:
                 data.append(d)
                 f.write(json.dumps(d, separators=(',', ':')) + '\n')
                 f.flush()
-                continue
-
-            m = PROBE_RE.match(response)
-            if m:
-                d = {
-                    'ts': ts,
-                    'z': float(m.group('z'))
-                }
-                data.append(d)
-                f.write(json.dumps(d, separators=(',', ':')) + '\n')
-                f.flush()
-                continue
 
     return data
 
 
-def write_chart(data, output_file):
+def write_chart(data, output_file, atherms):
     min_ts = data[0]['ts']
 
     ztrace = pgo.Scatter(
@@ -153,6 +173,27 @@ def write_chart(data, output_file):
     fig.add_trace(bstrace, secondary_y=True)
     fig.add_trace(etrace, secondary_y=True)
     fig.add_trace(estrace, secondary_y=True)
+
+    for therm_id in atherms:
+        x = []
+        y = []
+        for d in data:
+            if not 'atherms' in d:
+                continue
+            for ad in d['atherms']:
+                if ad['id'] == therm_id:
+                    x.append(d['ts'] - min_ts)
+                    y.append(ad['temp'])
+                    break
+
+        trace = pgo.Scatter(
+            x=x,
+            y=y,
+            name=f'{therm_id} temperature',
+            mode='lines'
+        )
+        fig.add_trace(trace, secondary_y=True)
+
     fig.update_layout(title_text='Probe Accuracy')
     fig.update_xaxes(title_text='seconds')
     fig.update_yaxes(title_text='mm', secondary_y=False)
@@ -167,7 +208,7 @@ def main():
     print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
 
     data = get_data(args.klippy_uds, args.data_file)
-    write_chart(data, args.chart_file)
+    write_chart(data, args.chart_file, args.additional_thermistors)
 
     print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
 

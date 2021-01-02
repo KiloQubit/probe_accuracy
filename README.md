@@ -44,6 +44,9 @@ can run the script in the background, and then you don't have to leave the ssh s
 
     nohup /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py >/tmp/probe_accuracy.log 2>&1 &
 
+If you have extra thermistors you want to chart the temperature of, find their gcode ids in your `printer.cfg`
+(e.g. `PI` and `CHAMBER`) and pass `--additional-thermistors PI CHAMBER` to the script above.
+
 Run the test macro on the printer:
 
     TEST_PROBE_ACCURACY
