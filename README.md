@@ -76,16 +76,19 @@ Customizing The Test
 
 You can pass parameters to the macro to change the temperatures, soak times and dwell behavior:
 
-    TEST_PROBE_ACCURACY [BED_TEMP=<value>] [EXTRUDER_TEMP=<value>]
+    TEST_PROBE_ACCURACY [START_IDLE_MINUTES=<value>]
+                        [BED_TEMP=<value>] [EXTRUDER_TEMP=<value>]
                         [BED_SOAK_MINUTES=<value>] [EXTRUDER_SOAK_MINUTES=<value>]
                         [DWELL_SECONDS=<value>] [DWELL_LIFT_Z=<value>]
 
 The temperatures are in Celsius.  The defaults are as follows:
 
-    TEST_PROBE_ACCURACY BED_TEMP=110 EXTRUDER_TEMP=240
+    TEST_PROBE_ACCURACY START_IDLE_MINUTES=3
+                        BED_TEMP=110 EXTRUDER_TEMP=240
                         BED_SOAK_MINUTES=30 EXTRUDER_SOAK_MINUTES=15
                         DWELL_SECONDS=1 DWELL_LIFT_Z=-1
 
+`START_IDLE_MINUTES` is the amount of time the test will wait at the start before heating up the bed.
 `DWELL_SECONDS` is the approximate amount of time between running `PROBE_ACCURACY` commands.  If
 `DWELL_LIFT_Z` is not `-1`, then the toolhead will be lifted to the specified Z after completing
 each `PROBE_ACCURACY`.  This is intended to allow the probe to cool away from the bed between probes.
