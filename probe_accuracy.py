@@ -14,6 +14,9 @@
 # Leave that ssh session/window open for the duration of the test.  After the test completes, the
 # chart should be in /tmp/probe_accuracy.html. Copy that file from the pi to your local machine
 # and open it.
+#
+# If you specify --import-data=<data file> from a previously run session the program will
+# read that data instead of collecting it from klipper to regenerate a graph
 
 import argparse
 import json
@@ -30,6 +33,7 @@ parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
 parser.add_argument('--additional-thermistors', nargs='*', metavar='gcode_id',
                     help='space-separated list of additional thermistor gcode_ids as defined in your config')
+parser.add_argument('--import-data', default='')
 
 KLIPPY_KEY = 31415926
 GCODE_SUBSCRIBE = {
@@ -122,6 +126,15 @@ def get_data(klippy_uds, data_file):
                 f.flush()
 
     return data
+    
+def load_data(data_file):
+	data = []
+	with open(data_file, 'r') as f:
+		for line in f.readlines():
+			data_row = json.loads(line)
+			data.append(data_row)
+	
+	return data
 
 
 def write_chart(data, output_file, atherms):
@@ -205,13 +218,18 @@ def write_chart(data, output_file, atherms):
 
 def main():
     args = parser.parse_args()
-
-    print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
-
-    data = get_data(args.klippy_uds, args.data_file)
-    write_chart(data, args.chart_file, args.additional_thermistors)
-
-    print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
+    # If we are importing data, just do that and don't collect
+    
+    if (args.import_data != ''):
+    	data = load_data(args.import_data)
+    	write_chart(data, args.chart_file, args.additional_thermistors)
+    	print(f'DONE, chart is in {args.chart_file}')
+      
+    else:
+    	print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
+    	data = get_data(args.klippy_uds, args.data_file)
+    	write_chart(data, args.chart_file, args.additional_thermistors)
+    	print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
 
 
 if __name__ == '__main__':
