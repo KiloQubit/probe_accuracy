@@ -15,8 +15,8 @@
 # chart should be in /tmp/probe_accuracy.html. Copy that file from the pi to your local machine
 # and open it.
 #
-# If you specify --import-data=<data file> from a previously run session the program will
-# read that data instead of collecting it from klipper to regenerate a graph
+# If you specify --plot-only the script will not collect data from Klipper, but instead plot an
+# existing JSON data file pointed to by --data-file.
 
 import argparse
 import json
@@ -33,7 +33,8 @@ parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
 parser.add_argument('--additional-thermistors', nargs='*', metavar='gcode_id',
                     help='space-separated list of additional thermistor gcode_ids as defined in your config')
-parser.add_argument('--import-data', default='')
+parser.add_argument('--plot-only', action='store_true',
+                    help='plot existing file specified by --data-file instead of collecting data from Klipper')
 
 KLIPPY_KEY = 31415926
 GCODE_SUBSCRIBE = {
@@ -52,7 +53,7 @@ TEMP_RE = re.compile(r'(?P<id>[\w-]+):(?P<temp>[0-9.]+)\s*/(?P<set>[0-9.]+)')
 PROBE_RE = re.compile(r'^// probe at [0-9.,]+ is z=(?P<z>[0-9.-]+)')
 
 
-def get_klippy_output(klippy_uds):
+def get_klippy_output(klippy_uds: str):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(klippy_uds)
 
@@ -76,7 +77,7 @@ def get_klippy_output(klippy_uds):
         sock.close()
 
 
-def parse_response(response):
+def parse_response(response: str) -> dict:
     ts = time.time()
 
     # Parse Z height output.
@@ -112,7 +113,7 @@ def parse_response(response):
         return d
 
 
-def get_data(klippy_uds, data_file):
+def get_data(klippy_uds: str, data_file: str) -> list:
     data = []
     with open(data_file, 'w') as f:
         for line in get_klippy_output(klippy_uds):
@@ -126,18 +127,14 @@ def get_data(klippy_uds, data_file):
                 f.flush()
 
     return data
-    
-def load_data(data_file):
-	data = []
-	with open(data_file, 'r') as f:
-		for line in f.readlines():
-			data_row = json.loads(line)
-			data.append(data_row)
-	
-	return data
 
 
-def write_chart(data, output_file, atherms):
+def load_data(data_file: str) -> list:
+    with open(data_file, 'r') as f:
+        return [json.loads(line) for line in f]
+
+
+def write_chart(data: list, output_file: str, atherms: list):
     min_ts = data[0]['ts']
 
     ztrace = pgo.Scatter(
@@ -218,18 +215,15 @@ def write_chart(data, output_file, atherms):
 
 def main():
     args = parser.parse_args()
-    # If we are importing data, just do that and don't collect
-    
-    if (args.import_data != ''):
-    	data = load_data(args.import_data)
-    	write_chart(data, args.chart_file, args.additional_thermistors)
-    	print(f'DONE, chart is in {args.chart_file}')
-      
+
+    if args.plot_only:
+        data = load_data(args.data_file)
     else:
-    	print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
-    	data = get_data(args.klippy_uds, args.data_file)
-    	write_chart(data, args.chart_file, args.additional_thermistors)
-    	print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
+        print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
+        data = get_data(args.klippy_uds, args.data_file)
+
+    write_chart(data, args.chart_file, args.additional_thermistors)
+    print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
 
 
 if __name__ == '__main__':
