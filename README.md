@@ -44,18 +44,6 @@ can run the script in the background, and then you don't have to leave the ssh s
 
     nohup /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py >/tmp/probe_accuracy.log 2>&1 &
 
-If you have extra thermistors you want to chart the temperature of, find their gcode ids in your `printer.cfg`
-(e.g. `PI` and `CHAMBER`) and pass `--additional-thermistors PI CHAMBER` to the script above.  For example,
-if your thermistor is defined in `printer.cfg` as:
-
-    [temperature_sensor rpi_cpu]
-    sensor_type: rpi_temperature
-    min_temp: 10
-    max_temp: 100
-    gcode_id: RPI
-
-You would take the gcode_id `RPI` from there and pass it to the script with `--additional-thermistors RPI`.
-
 Run the test macro on the printer:
 
     TEST_PROBE_ACCURACY
@@ -70,6 +58,19 @@ output should be on the Raspberry Pi in `/tmp/probe_accuracy.html` - copy that f
 open it.  It should contain a chart showing the Z height over time, as the bed and the hotend heat up.  There's
 also a `/tmp/probe_accuracy.json` file generated on the Raspberry Pi, which contains the data used for the chart.
 You can download it and use it to create your own chart if you wish.
+
+All thermistors defined in your `printer.cfg` are plotted on the chart.  Once the chart is opened, you can click
+on the legend of any thermistor in the chart to turn the trace on or off.
+
+Plotting Existing Data
+----------------------
+
+If you already have a JSON data file and want to generate a chart from it, you can use the `--plot-only` option.
+
+    /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py \
+        --plot-only \
+        --data-file /tmp/probe_accuracy.json \
+        --chart-file /tmp/probe_accuracy.html
 
 Customizing The Test
 --------------------
