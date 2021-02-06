@@ -31,8 +31,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--klippy-uds', default='/tmp/klippy_uds')
 parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
-parser.add_argument('--additional-thermistors', nargs='*', metavar='gcode_id',
-                    help='space-separated list of additional thermistor gcode_ids as defined in your config')
 parser.add_argument('--plot-only', action='store_true',
                     help='plot existing file specified by --data-file instead of collecting data from Klipper')
 
@@ -134,7 +132,7 @@ def load_data(data_file: str) -> list:
         return [json.loads(line) for line in f]
 
 
-def write_chart(data: list, output_file: str, atherms: list):
+def write_chart(data: list, output_file: str):
     min_ts = data[0]['ts']
 
     ztrace = pgo.Scatter(
@@ -184,26 +182,32 @@ def write_chart(data: list, output_file: str, atherms: list):
     fig.add_trace(etrace, secondary_y=True)
     fig.add_trace(estrace, secondary_y=True)
 
-    if atherms:
-        for therm_id in atherms:
-            x = []
-            y = []
-            for d in data:
-                if not 'atherms' in d:
-                    continue
-                for ad in d['atherms']:
-                    if ad['id'] == therm_id:
-                        x.append(d['ts'] - min_ts)
-                        y.append(ad['temp'])
-                        break
+    thermistors_xy = {}
+    for d in data:
+        if not 'atherms' in d:
+            continue
 
-            trace = pgo.Scatter(
-                x=x,
-                y=y,
-                name=f'{therm_id} temperature',
-                mode='lines'
-            )
-            fig.add_trace(trace, secondary_y=True)
+        ts = d['ts'] - min_ts
+        for ad in d['atherms']:
+            therm_id = ad['id']
+            temp = ad['temp']
+            try:
+                thermistors_xy[therm_id]['x'].append(ts)
+                thermistors_xy[therm_id]['y'].append(temp)
+            except KeyError:
+                thermistors_xy[therm_id] = {
+                    'x': [ts],
+                    'y': [temp]
+                }
+
+    for therm_id, xy in thermistors_xy.items():
+        trace = pgo.Scatter(
+            x=xy['x'],
+            y=xy['y'],
+            name=f'{therm_id} temperature',
+            mode='lines'
+        )
+        fig.add_trace(trace, secondary_y=True)
 
     fig.update_layout(title_text='Probe Accuracy')
     fig.update_xaxes(title_text='seconds')
@@ -222,7 +226,7 @@ def main():
         print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
         data = get_data(args.klippy_uds, args.data_file)
 
-    write_chart(data, args.chart_file, args.additional_thermistors)
+    write_chart(data, args.chart_file)
     print(f'DONE, chart is in {args.chart_file}, chart data in {args.data_file}')
 
 
