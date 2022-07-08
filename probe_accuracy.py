@@ -23,6 +23,7 @@ import json
 import re
 import socket
 import time
+from statistics import stdev
 
 import plotly.graph_objects as pgo
 from plotly.subplots import make_subplots
@@ -140,7 +141,17 @@ def write_chart(data: list, output_file: str):
         y=[x['z'] for x in data if 'z' in x],
         name='Z',
         mode='lines',
-        line={'color': 'black'}
+        line={'color': 'black'},
+        yaxis='y2'
+    )
+
+    zstddevtrace = pgo.Scatter(
+        x=[ts for i, ts in enumerate(ztrace.x) if i >= 4],
+        y=[stdev(ztrace.y[i-4:i+1]) for i, ts in enumerate(ztrace.y) if i >= 4],
+        name='Z stddev',
+        mode='markers',
+        line={'color': 'gray'},
+        yaxis='y3'
     )
 
     btrace = pgo.Scatter(
@@ -175,12 +186,13 @@ def write_chart(data: list, output_file: str):
         fillcolor='rgba(255,128,128,0.3)'
     )
 
-    fig = make_subplots(specs=[[{'secondary_y': True}]])
-    fig.add_trace(ztrace, secondary_y=False)
-    fig.add_trace(btrace, secondary_y=True)
-    fig.add_trace(bstrace, secondary_y=True)
-    fig.add_trace(etrace, secondary_y=True)
-    fig.add_trace(estrace, secondary_y=True)
+    fig = pgo.Figure()
+    fig.add_trace(ztrace)
+    fig.add_trace(zstddevtrace)
+    fig.add_trace(btrace)
+    fig.add_trace(bstrace)
+    fig.add_trace(etrace)
+    fig.add_trace(estrace)
 
     thermistors_xy = {}
     for d in data:
@@ -207,12 +219,38 @@ def write_chart(data: list, output_file: str):
             name=f'{therm_id} temperature',
             mode='lines'
         )
-        fig.add_trace(trace, secondary_y=True)
+        fig.add_trace(trace)
 
-    fig.update_layout(title_text='Probe Accuracy')
-    fig.update_xaxes(title_text='seconds')
-    fig.update_yaxes(title_text='mm', secondary_y=False)
-    fig.update_yaxes(title_text='°C', secondary_y=True)
+    fig.update_layout(
+        title=dict(
+            text='Probe Accuracy'
+        ),
+        legend=dict(
+            x=1.1
+        ),
+        xaxis=dict(
+            title='seconds',
+            domain=[0, 0.9]
+        ),
+        yaxis=dict(
+            title='°C',
+        ),
+        yaxis2=dict(
+            title='Z (mm)',
+            anchor='x',
+            overlaying='y',
+            side='right',
+            position=0.9
+        ),
+        yaxis3=dict(
+            title='Z stddev (mm)',
+            rangemode='tozero',
+            anchor='free',
+            overlaying='y',
+            side='right',
+            position=1.0
+        ),
+    )
 
     fig.write_html(output_file)
 
