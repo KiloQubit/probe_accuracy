@@ -23,7 +23,7 @@ import json
 import re
 import socket
 import time
-from statistics import stdev
+from statistics import pstdev
 
 import plotly.graph_objects as pgo
 from plotly.subplots import make_subplots
@@ -147,7 +147,7 @@ def write_chart(data: list, output_file: str):
 
     zstddevtrace = pgo.Scatter(
         x=[ts for i, ts in enumerate(ztrace.x) if i >= 4],
-        y=[stdev(ztrace.y[i-4:i+1]) for i, ts in enumerate(ztrace.y) if i >= 4],
+        y=[pstdev(ztrace.y[i-4:i+1]) for i, ts in enumerate(ztrace.y) if i >= 4],
         name='Z stddev',
         mode='markers',
         line={'color': 'gray'},
