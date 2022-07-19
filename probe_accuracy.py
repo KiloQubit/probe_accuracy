@@ -147,7 +147,7 @@ def write_chart(data: list, output_file: str):
 
     zstddevtrace = pgo.Scatter(
         x=[ts for i, ts in enumerate(ztrace.x) if i >= 4],
-        y=[pstdev(ztrace.y[i-4:i+1]) for i, ts in enumerate(ztrace.y) if i >= 4],
+        y=[pstdev(ztrace.y[i-4:i+1]) * 1000 for i, ts in enumerate(ztrace.y) if i >= 4],
         name='Z stddev',
         mode='markers',
         line={'color': 'gray'},
@@ -243,7 +243,7 @@ def write_chart(data: list, output_file: str):
             position=0.9
         ),
         yaxis3=dict(
-            title='Z stddev (mm)',
+            title='Z stddev (µm)',
             rangemode='tozero',
             anchor='free',
             overlaying='y',
