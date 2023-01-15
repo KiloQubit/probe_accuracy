@@ -37,7 +37,12 @@ Pi and run the following to start the data collection:
 
     /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
 
-**IMPORTANT**:  Leave that ssh session/window open for the duration of the test.
+> **Warning**
+> Leave that ssh session/window open for the duration of the test.
+
+> **Note**
+> If you get a `FileNotFoundError`, your Klipper API server socket may be in a different location.
+> You can pass a different location to the script using the `--klippy-uds /some/other/location` option
 
 Alternatively, if you don't want to leave the window open, or have a bad network connection to the Pi, you
 can run the script in the background, and then you don't have to leave the ssh session open:
