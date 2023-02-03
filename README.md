@@ -55,7 +55,7 @@ Run the test macro on the printer:
 
 It will continuously run `PROBE_ACCURACY` while heating up the bed, soaking the bed, heating up the hotend, and
 soaking the hotend.  See below if you want to change the temperatures or soak times.  The default will heat the
-bed to 110, soak for 30 minutes, then heat the hotend to 240, and soak for 15 minutes - so this test will
+bed to 110, soak for 30 minutes, then heat the hotend to 150, and soak for 15 minutes - so this test will
 probably take over an hour to run.  Get some coffee while you wait.
 
 After the test is complete, the printer will raise the toolhead a little and turn off the heaters.  The chart
@@ -91,7 +91,7 @@ You can pass parameters to the macro to change the temperatures, soak times and 
 The temperatures are in Celsius.  The defaults are as follows:
 
     TEST_PROBE_ACCURACY START_IDLE_MINUTES=5
-                        BED_TEMP=110 EXTRUDER_TEMP=240
+                        BED_TEMP=110 EXTRUDER_TEMP=150
                         BED_SOAK_MINUTES=30 EXTRUDER_SOAK_MINUTES=15
                         DWELL_SECONDS=1 DWELL_LIFT_Z=-1
                         END_IDLE_MINUTES=10
