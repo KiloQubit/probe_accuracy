@@ -13,16 +13,25 @@ Installation
 Create a Python environment for this script.  Use ssh to log in to the Raspberry Pi, and run the following:
 
     sudo apt install python3-venv
-    python3 -m venv /home/pi/plotly-env
-    /home/pi/plotly-env/bin/pip install -U plotly
-    mkdir /home/pi/probe_accuracy
+    python3 -m venv ~/plotly-env
+    ~/plotly-env/bin/pip install -U plotly
+    mkdir ~/probe_accuracy
 
-Download `probe_accuracy.py` from this repository and copy it into `/home/pi/probe_accuracy/` on the Raspberry Pi.
+Download `probe_accuracy.py` from this repository and copy it into `~/probe_accuracy/` on the Raspberry Pi:
+```bash
+cd ~/probe_accuracy
+wget -O probe_accuracy.py https://raw.githubusercontent.com/KiloQubit/probe_accuracy/main/probe_accuracy.py
+```
 
 Download `test_probe_accuracy.cfg` from this repository and copy it to the directory containing your
-`printer.cfg` - it's `/home/pi/klipper_config/` if you're using
-[MainsailOS](https://github.com/raymondh2/MainsailOS).  Edit your `printer.cfg` and add the
-following on a new line:
+`printer.cfg` - it's `~/printer_data/config/` if you're using a current version of 
+[MainsailOS](https://github.com/mainsail-crew/MainsailOS):
+```bash
+cd ~/printer_data/config
+wget -O test_probe_accuracy.cfg https://raw.githubusercontent.com/KiloQubit/probe_accuracy/main/test_probe_accuracy.cfg
+```
+
+Edit your `printer.cfg` and add the following on a new line:
 
     [include test_probe_accuracy.cfg]
 
@@ -35,7 +44,7 @@ Home and level your printer (G32 on a [VORON 2](https://vorondesign.com)).  Posi
 where you want to test the probe, probably in the center of the bed.  Use ssh to log in to the Raspberry
 Pi and run the following to start the data collection:
 
-    /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
+    ~/plotly-env/bin/python3 ~/probe_accuracy/probe_accuracy.py
 
 > **Warning**
 > Leave that ssh session/window open for the duration of the test.
@@ -47,7 +56,7 @@ Pi and run the following to start the data collection:
 Alternatively, if you don't want to leave the window open, or have a bad network connection to the Pi, you
 can run the script in the background, and then you don't have to leave the ssh session open:
 
-    nohup /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py >/tmp/probe_accuracy.log 2>&1 &
+    nohup ~/plotly-env/bin/python3 ~/probe_accuracy/probe_accuracy.py >/tmp/probe_accuracy.log 2>&1 &
 
 Run the test macro on the printer:
 
@@ -72,7 +81,7 @@ Plotting Existing Data
 
 If you already have a JSON data file and want to generate a chart from it, you can use the `--plot-only` option.
 
-    /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py \
+    ~/plotly-env/bin/python3 ~/probe_accuracy/probe_accuracy.py \
         --plot-only \
         --data-file /tmp/probe_accuracy.json \
         --chart-file /tmp/probe_accuracy.html

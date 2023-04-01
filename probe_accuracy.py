@@ -1,15 +1,15 @@
 # Create a Python environment for this script.  Use ssh to log in to the pi, and run the following:
 #
 #     sudo apt install python3-venv
-#     python3 -m venv /home/pi/plotly-env
-#     /home/pi/plotly-env/bin/pip install -U plotly
-#     mkdir /home/pi/probe_accuracy
+#     python3 -m venv ~/plotly-env
+#     ~/plotly-env/bin/pip install -U plotly
+#     mkdir ~/probe_accuracy
 #
-# Download probe_accuracy.py and copy it to the pi into /home/pi/probe_accuracy/ .
+# Download probe_accuracy.py and copy it to the pi into ~/probe_accuracy/ .
 #
 # To collect data, ssh into the pi and run the below command before doing TEST_PROBE_ACCURACY:
 #
-#     /home/pi/plotly-env/bin/python3 /home/pi/probe_accuracy/probe_accuracy.py
+#     ~/plotly-env/bin/python3 ~/probe_accuracy/probe_accuracy.py
 #
 # Leave that ssh session/window open for the duration of the test.  After the test completes, the
 # chart should be in /tmp/probe_accuracy.html. Copy that file from the pi to your local machine
@@ -20,6 +20,7 @@
 
 import argparse
 import json
+import os
 import re
 import socket
 import time
@@ -28,8 +29,10 @@ from statistics import pstdev
 import plotly.graph_objects as pgo
 from plotly.subplots import make_subplots
 
+home_dir = os.path.expanduser('~')
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--klippy-uds', default='/home/pi/printer_data/comms/klippy.sock')
+parser.add_argument('--klippy-uds', default=os.path.join(home_dir, 'printer_data/comms/klippy.sock'))
 parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
 parser.add_argument('--plot-only', action='store_true',
