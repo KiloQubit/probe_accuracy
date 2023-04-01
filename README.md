@@ -20,7 +20,7 @@ Create a Python environment for this script.  Use ssh to log in to the Raspberry
 Download `probe_accuracy.py` from this repository and copy it into `~/probe_accuracy/` on the Raspberry Pi:
 ```bash
 cd ~/probe_accuracy
-wget -O probe_accuracy.py https://raw.githubusercontent.com/KiloQubit/probe_accuracy/master/probe_accuracy.py
+wget -O probe_accuracy.py https://raw.githubusercontent.com/KiloQubit/probe_accuracy/main/probe_accuracy.py
 ```
 
 Download `test_probe_accuracy.cfg` from this repository and copy it to the directory containing your
@@ -28,7 +28,7 @@ Download `test_probe_accuracy.cfg` from this repository and copy it to the direc
 [MainsailOS](https://github.com/mainsail-crew/MainsailOS):
 ```bash
 cd ~/printer_data/config
-wget -O test_probe_accuracy.cfg https://raw.githubusercontent.com/KiloQubit/probe_accuracy/master/test_probe_accuracy.cfg
+wget -O test_probe_accuracy.cfg https://raw.githubusercontent.com/KiloQubit/probe_accuracy/main/test_probe_accuracy.cfg
 ```
 
 Edit your `printer.cfg` and add the following on a new line:
