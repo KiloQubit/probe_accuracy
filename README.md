@@ -63,7 +63,7 @@ Run the test macro on the printer:
     TEST_PROBE_ACCURACY
 
 It will continuously run `PROBE_ACCURACY` while heating up the bed, soaking the bed, heating up the hotend, and
-soaking the hotend. See below if you want to change the temperatures or soak times.  The default will heat the
+soaking the hotend.  See below if you want to change the temperatures or soak times.  The default will heat the
 bed to 110, soak for 30 minutes, then heat the hotend to 150, and soak for 15 minutes - so this test will
 probably take over an hour to run.  Get some coffee while you wait.
 
@@ -108,11 +108,11 @@ The temperatures are in Celsius.  The defaults are as follows:
 `START_IDLE_MINUTES` is the amount of time the test will wait at the start before heating up the bed.
 
 Setting `BED_TEMP` or `EXTRUDER_TEMP` to `-1` allows you to disable heating and soaking the bed or
-the extruder. Thus you could run a test with just the extruder and without ever turning on the bed.
+the extruder.  Thus you could run a test with just the extruder and without ever turning on the bed.
 
 `DWELL_SECONDS` is the approximate amount of time between running `PROBE_ACCURACY` commands.  If
 `DWELL_LIFT_Z` is not `-1`, then the toolhead will be lifted to the specified Z after completing
-each `PROBE_ACCURACY`. This is intended to allow the probe to cool away from the bed between probes.
+each `PROBE_ACCURACY`.  This is intended to allow the probe to cool away from the bed between probes.
 
 `END_IDLE_MINUTES` is the amount of time the test will wait after turning off the heaters at the end,
 while still measuring probe accuracy.
