@@ -32,7 +32,7 @@ from plotly.subplots import make_subplots
 home_dir = os.path.expanduser('~')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--klippy-uds', default=os.path.join(home_dir, 'printer_data/comms/klippy.sock')
+parser.add_argument('--klippy-uds', default=os.path.join(home_dir, 'printer_data/comms/klippy.sock'))
 parser.add_argument('--data-file', default='/tmp/probe_accuracy.json')
 parser.add_argument('--chart-file', default='/tmp/probe_accuracy.html')
 parser.add_argument('--plot-only', action='store_true',
