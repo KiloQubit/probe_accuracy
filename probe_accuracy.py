@@ -124,6 +124,7 @@ def get_data(klippy_uds: str, data_file: str) -> list:
 
             d = parse_response(response)
             if d:
+                print("Datapoint: ", d)
                 data.append(d)
                 f.write(json.dumps(d, separators=(',', ':')) + '\n')
                 f.flush()
@@ -265,6 +266,7 @@ def main():
         data = load_data(args.data_file)
     else:
         print('Recording data, LEAVE THIS SESSION OPEN UNTIL THE SCRIPT SAYS "DONE"!')
+        print('You should see data printed each time the printer probes, otherwise something is wrong.')
         data = get_data(args.klippy_uds, args.data_file)
 
     write_chart(data, args.chart_file)
